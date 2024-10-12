@@ -149,7 +149,6 @@
             return response.json();
           })
           .then((data) => {
-            // 显示募资项目信息
             document.getElementById("fundraiserTitle").textContent =
               data.fundraiser.title;
             document.getElementById(
@@ -165,7 +164,6 @@
               "fundraiserCurrent"
             ).innerHTML = `<strong>Current Funding:</strong> $${data.fundraiser.current_funding}`;
 
-            // 显示捐赠列表
             const donationList = document.createElement("ul");
             donationList.className = "donation-list";
             data.donations.forEach((donation) => {

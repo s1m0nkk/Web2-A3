@@ -70,7 +70,6 @@
     <div class="container">
       <h2>Donate to <span id="fundraiserName"></span></h2>
 
-      <!-- 表单 -->
       <form id="donationForm">
         <label for="giver">Your Name</label>
         <input type="text" id="giver" name="giver" required />
@@ -94,7 +93,6 @@
           return;
         }
 
-        // 获取募资项目的详细信息
         fetch(`http://localhost:3333/fundraisers/${fundraiserId}`)
           .then((response) => response.json())
           .then((data) => {
@@ -105,7 +103,6 @@
             console.error("Error fetching fundraiser details:", err);
           });
 
-        // 处理捐赠表单提交
         document
           .getElementById("donationForm")
           .addEventListener("submit", function (e) {
@@ -120,14 +117,13 @@
               return;
             }
 
-            // 发送捐赠请求
             fetch(`http://localhost:3333/donations`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                date: new Date().toISOString().split("T")[0], // 当前日期
+                date: new Date().toISOString().split("T")[0],
                 amount: amount,
                 giver: giver,
                 fundraiser_id: fundraiserId,
@@ -140,7 +136,6 @@
                     document.getElementById("fundraiserName").textContent
                   }`
                 );
-                // 重定向回募资项目详情页面
                 window.location.href = `fundraiser.html?id=${fundraiserId}`;
               })
               .catch((err) => {

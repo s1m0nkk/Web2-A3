@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Manage Fundraisers</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f8f0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+      }
+
+      h2 {
+        color: #4caf50;
+        text-align: center;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+      }
+
+      table th,
+      table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+
+      table th {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .btn {
+        display: inline-block;
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        background-color: #388e3c;
+      }
+
+      .delete-btn {
+        color: red;
+        cursor: pointer;
+      }
+
+      form {
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Admin - Manage Fundraisers</h2>
+
+      <!-- 显示募资项目的表格 -->
+      <table id="fundraisersTable">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Organizer</th>
+            <th>City</th>
+            <th>Target Funding</th>
+            <th>Current Funding</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 动态加载募资项目 -->
+        </tbody>
+      </table>
+
+      <!-- 新增募资项目的表单 -->
+      <h3>Add New Fundraiser</h3>
+      <form id="newFundraiserForm">
+        <input type="text" id="newOrganizer" placeholder="Organizer" required />
+        <input type="text" id="newTitle" placeholder="Title" required />
+        <input
+          type="number"
+          id="newTarget"
+          placeholder="Target Funding"
+          required
+        />
+        <input type="text" id="newCity" placeholder="City" required />
+        <select id="newCategory" required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="1">Education</option>
+          <option value="2">Health</option>
+          <option value="3">Environment</option>
+          <option value="4">Community</option>
+          <!-- 动态加载募资类别 -->
+        </select>
+        <button type="submit" class="btn">Save New Fundraiser</button>
+      </form>
+
+      <!-- 更新募资项目的表单 -->
+      <h3>Update Fundraiser</h3>
+      <form id="updateFundraiserForm">
+        <input type="hidden" id="updateId" />
+        <input
+          type="text"
+          id="updateOrganizer"
+          placeholder="Organizer"
+          required
+        />
+        <input type="text" id="updateTitle" placeholder="Title" required />
+        <input
+          type="number"
+          id="updateTarget"
+          placeholder="Target Funding"
+          required
+        />
+        <input type="text" id="updateCity" placeholder="City" required />
+        <select id="updateCategory" required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="1">Education</option>
+          <option value="2">Health</option>
+          <option value="3">Environment</option>
+          <option value="4">Community</option>
+          <!-- 动态加载募资类别 -->
+        </select>
+        <button type="submit" class="btn">Update Fundraiser</button>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 获取募资项目并显示在表格中
+        function loadFundraisers() {
+          fetch("http://localhost:3333/fundraisers")
+            .then((response) => response.json())
+            .then((data) => {
+              const tableBody = document.querySelector(
+                "#fundraisersTable tbody"
+              );
+              tableBody.innerHTML = ""; // 清空表格
+              data.forEach((fundraiser) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td>${fundraiser.title}</td>
+                  <td>${fundraiser.organizer}</td>
+                  <td>${fundraiser.city}</td>
+                  <td>$${fundraiser.target_funding}</td>
+                  <td>$${fundraiser.current_funding}</td>
+                  <td>
+                    <span class="btn" onclick="editFundraiser(${fundraiser.fundraiser_id})">Edit</span>
+                    <span class="delete-btn" onclick="deleteFundraiser(${fundraiser.fundraiser_id})">Delete</span>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+              });
+            })
+            .catch((err) => console.error("Error loading fundraisers:", err));
+        }
+
+        // 添加募资项目
+        document
+          .getElementById("newFundraiserForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            const organizer = document.getElementById("newOrganizer").value;
+            const title = document.getElementById("newTitle").value;
+            const target = document.getElementById("newTarget").value;
+            const city = document.getElementById("newCity").value;
+            const category_id = document.getElementById("newCategory").value;
+
+            fetch("http://localhost:3333/fundraisers", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                organizer,
+                title,
+                target_funding: target,
+                city,
+                category_id,
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                alert("New fundraiser added successfully!");
+                loadFundraisers(); // 重新加载募资项目
+                document.getElementById("newFundraiserForm").reset(); // 清空表单
+              })
+              .catch((err) => console.error("Error adding fundraiser:", err));
+          });
+
+        window.editFundraiser = function (id) {
+          fetch(`http://localhost:3333/fundraisers/${id}`)
+            .then((response) => response.json())
+            .then((data) => {
+              // 确保 data 包含正确的字段
+              if (data && data.fundraiser) {
+                const fundraiser = data.fundraiser;
+                document.getElementById("updateId").value =
+                  fundraiser.fundraiser_id || "";
+                document.getElementById("updateOrganizer").value =
+                  fundraiser.organizer || "";
+                document.getElementById("updateTitle").value =
+                  fundraiser.title || "";
+                document.getElementById("updateTarget").value =
+                  fundraiser.target_funding || "";
+                document.getElementById("updateCity").value =
+                  fundraiser.city || "";
+                document.getElementById("updateCategory").value =
+                  fundraiser.category_id || "";
+                document.getElementById("updateFundraiserForm").style.display =
+                  "block";
+              } else {
+                console.error("No data found for the given ID");
+              }
+            })
+            .catch((err) => console.error("Error fetching fundraiser:", err));
+        };
+
+        document
+          .getElementById("updateFundraiserForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            const id = document.getElementById("updateId").value;
+            const organizer = document.getElementById("updateOrganizer").value;
+            const title = document.getElementById("updateTitle").value;
+            const target = document.getElementById("updateTarget").value;
+            const city = document.getElementById("updateCity").value;
+            const category_id = document.getElementById("updateCategory").value;
+
+            fetch(`http://localhost:3333/fundraisers/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                organizer,
+                title,
+                target_funding: target,
+                city,
+                category_id,
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                alert("Fundraiser updated successfully!");
+                loadFundraisers();
+                document.getElementById("updateFundraiserForm").reset();
+                document.getElementById("updateFundraiserForm").style.display =
+                  "none";
+              })
+              .catch((err) => console.error("Error updating fundraiser:", err));
+          });
+
+        window.deleteFundraiser = function (id) {
+          if (confirm("Are you sure you want to delete this fundraiser?")) {
+            fetch(`http://localhost:3333/fundraisers/${id}`, {
+              method: "DELETE",
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                alert("Fundraiser deleted successfully!");
+                loadFundraisers();
+              })
+              .catch((err) => console.error("Error deleting fundraiser:", err));
+          }
+        };
+
+        loadFundraisers();
+      });
+    </script>
+  </body>
+</html>
